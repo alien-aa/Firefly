@@ -1,7 +1,5 @@
-# level.py
 import pygame
 import os
-
 
 class Level:
     def __init__(self, config, level_num):
@@ -10,9 +8,12 @@ class Level:
         self.level_num = level_num
         self.level_map = []
         self.walls = []
+        self.floors = []
         self.player_start = (1, 1)
         self.firefly_path = []
         self.firefly_end = None
+        self.wall_image = pygame.image.load(config.get_image_path("wall.png")).convert_alpha()
+        self.floor_image = pygame.image.load(config.get_image_path("floor.png")).convert_alpha()
         self._load_level()
         self._parse_level()
 
@@ -23,27 +24,25 @@ class Level:
 
     def _parse_level(self):
         self.walls = []
+        self.floors = []
         self.player_start = None
         self.firefly_path = []
         self.firefly_end = None
 
-        # Первый проход: найти стартовые позиции и стены
         for y, row in enumerate(self.level_map):
             for x, cell in enumerate(row):
                 if cell == '#':
                     self.walls.append((x, y))
-                elif cell == 'P':
+                else:
+                    self.floors.append((x, y))
+                if cell == 'P':
                     self.player_start = (x, y)
                 elif cell == 'F':
                     self.firefly_end = (x, y)
-
-        # Второй проход: построение маршрута светлячка
         if self.player_start and self.firefly_end:
             x, y = self.player_start
             path = []
             visited = set()
-
-            # Находим первую клетку с направлением
             start_found = False
             for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
                 nx = x + dx
@@ -53,28 +52,19 @@ class Level:
                         x, y = nx, ny
                         start_found = True
                         break
-
             if not start_found:
                 return
-
             while True:
                 if (x, y) == self.firefly_end:
                     path.append((x, y))
                     break
-
-                if (x < 0 or y < 0 or
-                        y >= len(self.level_map) or
-                        x >= len(self.level_map[y])):
+                if (x < 0 or y < 0 or y >= len(self.level_map) or x >= len(self.level_map[y])):
                     break
-
                 cell = self.level_map[y][x]
                 if (x, y) in visited:
                     break
-
                 visited.add((x, y))
                 path.append((x, y))
-
-                # Обработка направлений и пустых клеток
                 if cell == 'r':
                     x += 1
                 elif cell == 'l':
@@ -84,8 +74,6 @@ class Level:
                 elif cell == 'd':
                     y += 1
                 elif cell == '_':
-                    # Продолжаем движение в том же направлении
-                    # Определяем последнее направление
                     if len(path) >= 2:
                         prev_x, prev_y = path[-2]
                         dx = x - prev_x
@@ -96,20 +84,13 @@ class Level:
                         break
                 else:
                     break
-
             self.firefly_path = path
 
-    def get_walls(self):
-        return self.walls
-
     def draw(self, screen):
-        screen.fill(self.config.colors['background'])
-        for y, row in enumerate(self.level_map):
-            for x, cell in enumerate(row):
-                if cell == '#':
-                    pygame.draw.rect(
-                        screen,
-                        self.config.colors['wall'],
-                        (x * self.cell_size, y * self.cell_size,
-                         self.cell_size, self.cell_size)
-                    )
+        for x, y in self.floors:
+            screen.blit(self.floor_image, (x * self.cell_size, y * self.cell_size))
+        for x, y in self.walls:
+            screen.blit(self.wall_image, (x * self.cell_size, y * self.cell_size))
+
+    def get_walls(self):
+        return self.walls.copy()
