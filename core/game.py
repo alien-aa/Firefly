@@ -8,7 +8,7 @@ from entities.firefly import Firefly
 class Game:
     MENU = 0
     GAME = 1
-    SLIDESHOW = 3  # New state for slideshow
+    SLIDESHOW = 3
     END = 2
 
     def __init__(self, config):
@@ -20,7 +20,6 @@ class Game:
         self.current_level = config.initial_level
         self.total_levels = config.total_levels
 
-        # Slideshow variables
         self.slideshow_slides = [
             {"speaker": "Firefly", "text": "*shining*", "color": (255, 255, 255)},
             {"speaker": "Player", "text": "What's there? I think I see a light. Is this the way out?",
@@ -29,7 +28,7 @@ class Game:
              "color": (255, 255, 255)},
             {"speaker": "Firefly", "text": "Go to the light and don't touch the doors.",
              "color": (255, 255, 255)},
-            {"speaker": "Player", "text": "You are my light.", "color": (255, 255, 150)}  # Light yellow color
+            {"speaker": "Player", "text": "You are my light.", "color": (255, 255, 150)}
         ]
 
         self.current_slide = 0
@@ -44,14 +43,13 @@ class Game:
         self.menu_music = pygame.mixer.Sound(self.config.get_sound_path("menu.ogg"))
         self.game_music = pygame.mixer.Sound(self.config.get_sound_path("game.ogg"))
 
-        # Загрузка фоновых изображений для меню и экрана завершения
         try:
             self.menu_background_img = pygame.image.load(self.config.get_image_path("menu.png")).convert()
             self.menu_background = self._prepare_background_image(self.menu_background_img)
         except Exception as e:
             print(f"Error loading menu background: {e}")
             self.menu_background = pygame.Surface((self.width, self.height))
-            self.menu_background.fill((0, 0, 0))  # Черный фон как запасной вариант
+            self.menu_background.fill((0, 0, 0))
 
         try:
             self.end_background_img = pygame.image.load(self.config.get_image_path("end.png")).convert()
@@ -59,9 +57,8 @@ class Game:
         except Exception as e:
             print(f"Error loading end background: {e}")
             self.end_background = pygame.Surface((self.width, self.height))
-            self.end_background.fill((0, 0, 0))  # Черный фон как запасной вариант
+            self.end_background.fill((0, 0, 0))
 
-        # Работа со шрифтами: пробуем кастомный, иначе дефолтный
         try:
             self.title_font = pygame.font.Font(self.config.get_font_path("ZenMasters.ttf"), 74)
             self.text_font = pygame.font.Font(self.config.get_font_path("ZenMasters.ttf"), 36)
@@ -72,40 +69,33 @@ class Game:
             self.control_font = pygame.font.SysFont("arial", 24)
 
     def _prepare_background_image(self, image):
-        """Подготавливает фоновое изображение: обрезает по размеру экрана и добавляет затемнение"""
         img_width, img_height = image.get_size()
         crop_width = min(img_width, self.width)
         crop_height = min(img_height, self.height)
         x_offset = max(0, (img_width - crop_width) // 2)
         y_offset = max(0, (img_height - crop_height) // 2)
 
-        # Создаем новую поверхность для готового фона
         background = pygame.Surface((self.width, self.height))
-        background.fill((0, 0, 0))  # Заполняем черным для областей, которые могут не быть покрыты изображением
+        background.fill((0, 0, 0))  
 
-        # Обрезаем изображение до нужного размера
         try:
             cropped = image.subsurface((x_offset, y_offset,
                                         min(crop_width, img_width - x_offset),
                                         min(crop_height, img_height - y_offset)))
 
-            # Размещаем обрезанное изображение по центру
             x_pos = (self.width - cropped.get_width()) // 2
             y_pos = (self.height - cropped.get_height()) // 2
             background.blit(cropped, (x_pos, y_pos))
 
-            # Создаем затемнение (80% непрозрачности = 204 из 255)
             overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 128))  # RGBA, где alpha = 0.8 * 255 = 204
+            overlay.fill((0, 0, 0, 128))
 
-            # Накладываем затемнение
             background.blit(overlay, (0, 0))
 
             return background
 
         except Exception as e:
             print(f"Error cropping background image: {e}")
-            # В случае ошибки возвращаем черный фон
             background.fill((0, 0, 0))
             return background
 
@@ -138,7 +128,7 @@ class Game:
         except Exception as e:
             print(f"Error loading final image: {e}")
             self.slide_background = pygame.Surface((self.width, self.height))
-            self.slide_background.fill((0, 0, 0))  # Black background as fallback
+            self.slide_background.fill((0, 0, 0))
 
         self.continue_prompt = self.control_font.render("Press 'Enter' to continue", True, (180, 180, 180))
         self.current_slide = 0
@@ -183,7 +173,8 @@ class Game:
                 self._init_level()
             else:
                 self.game_music.stop()
-                self._init_slideshow()  # Initialize slideshow instead of going directly to END state
+                self._init_slideshow()
+                self._init_slideshow()
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -208,16 +199,13 @@ class Game:
             self.player.update(dt, self.level.get_walls())
             self._check_level_completion()
         elif self.current_state == self.SLIDESHOW:
-            # Update animations
             self.player.animation_timer += dt
             self.firefly.animation_timer += dt
 
-            # Update player animation
             if self.player.animation_timer >= self.player.animation_delay:
                 self.player.animation_timer -= self.player.animation_delay
                 self.player.frame = (self.player.frame + 1) % len(self.player.images)
 
-            # Update firefly animation
             if self.firefly.animation_timer >= self.firefly.animation_delay:
                 self.firefly.animation_timer -= self.firefly.animation_delay
                 self.firefly.frame = (self.firefly.frame + 1) % len(self.firefly.images)
@@ -245,37 +233,31 @@ class Game:
         for word in words:
             test_line = line + word + " "
             test_width = self.control_font.size(test_line)[0]
-            if test_width > self.width - 100:  # Margin of 50px on each side
-                # Render current line
+            if test_width > self.width - 100:
                 line_surf = self.control_font.render(line, True, color)
                 self.screen.blit(line_surf, (50, strip_top + text_height))
-                text_height += line_surf.get_height() + 10  # Add line spacing
+                text_height += line_surf.get_height() + 10
                 line = word + " "
             else:
                 line = test_line
 
-        # Render remaining text
         if line:
             line_surf = self.control_font.render(line, True, color)
             self.screen.blit(line_surf, (50, strip_top + text_height))
 
-        # Draw continue prompt
         prompt_rect = self.continue_prompt.get_rect(bottomright=(self.width - 20, self.height - 20))
         self.screen.blit(self.continue_prompt, prompt_rect)
 
-        # Draw character images with animation
         if slide_data["speaker"] == "Player":
-            # Draw scaled player image
             img = pygame.transform.scale(
                 self.player.images[self.player.frame],
                 (self.config.cell_size * 8, self.config.cell_size * 8)
             )
             img_rect = img.get_rect(center=(self.width // 4, strip_top - 100))
-            if self.player.last_direction[0] < 0:  # Respect player's last direction
+            if self.player.last_direction[0] < 0:
                 img = pygame.transform.flip(img, True, False)
             self.screen.blit(img, img_rect)
         elif slide_data["speaker"] == "Firefly":
-            # Draw scaled firefly image
             img = pygame.transform.scale(
                 self.firefly.images[self.firefly.frame],
                 (self.config.cell_size * 3, self.config.cell_size * 3)
@@ -298,20 +280,16 @@ class Game:
         pygame.display.flip()
 
     def _draw_menu(self):
-        # Отобразить фоновое изображение
         self.screen.blit(self.menu_background, (0, 0))
 
-        # Отобразить заголовок
         title = self.title_font.render("Firefly", True, (255, 255, 0))
         title_rect = title.get_rect(center=(self.width // 2, self.height // 3))
         self.screen.blit(title, title_rect)
 
-        # Отобразить приглашение к началу игры
         prompt = self.text_font.render("Press ENTER to start", True, (200, 200, 200))
         prompt_rect = prompt.get_rect(center=(self.width // 2, self.height * 2 // 3))
         self.screen.blit(prompt, prompt_rect)
 
-        # Отобразить управление
         controls = [
             "W/S/A/D - move",
             "ESC - exit to menu",
@@ -332,11 +310,9 @@ class Game:
             self.player.draw(self.screen)
             self.firefly.draw(self.screen)
 
-        # --- Затемнение уровня с просветами ---
         darkness = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        darkness.fill((0, 0, 0, 250))  # Тёмный полупрозрачный слой
+        darkness.fill((0, 0, 0, 250))
 
-        # Центры окружностей
         cell_size = self.config.cell_size
         px = self.player.grid_x * cell_size + cell_size // 2
         py = self.player.grid_y * cell_size + cell_size // 2
@@ -345,21 +321,17 @@ class Game:
         fx += cell_size // 2
         fy += cell_size // 2
 
-        # Просвет вокруг игрока
         darkness.blit(self.player_light_mask, self.player_light_mask.get_rect(center=(px, py)),
                       special_flags=pygame.BLEND_RGBA_SUB)
 
-        # Просвет вокруг светлячка
         darkness.blit(self.firefly_light_mask, self.firefly_light_mask.get_rect(center=(fx, fy)),
                       special_flags=pygame.BLEND_RGBA_SUB)
 
         self.screen.blit(darkness, (0, 0))
 
     def _draw_end(self):
-        # Отобразить фоновое изображение
         self.screen.blit(self.end_background, (0, 0))
 
-        # Отобразить текст "The End"
         text = self.title_font.render("The End", True, (255, 255, 255))
         text_rect = text.get_rect(center=(self.width // 2, self.height // 4))
         self.screen.blit(text, text_rect)

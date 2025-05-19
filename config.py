@@ -58,13 +58,10 @@ class ConfigManager:
         return os.path.join(self.config.get('Paths', 'levels'), f"level{level_num}.txt")
 
     def get_font_path(self, filename):
-        # Предполагается, что шрифты лежат в папке images или fonts рядом с изображениями
-        # Можно адаптировать под отдельную папку fonts, если потребуется
         font_dir = os.path.join(os.path.dirname(self.images_path), "fonts")
         font_path = os.path.join(font_dir, filename)
         if os.path.exists(font_path):
             return font_path
-        # fallback: ищем в images
         return os.path.join(self.images_path, filename)
 
     @property

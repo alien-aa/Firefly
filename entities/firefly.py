@@ -17,11 +17,9 @@ class Firefly:
         self.index = 0
         self.waiting_for_player = False
         self.last_pos = None
-        # Грузим изображение пола для очистки предыдущей позиции
         self.floor_image = pygame.image.load(config.get_image_path("floor.png")).convert_alpha()
 
     def update(self, dt, wait_for_player=None):
-        # Сохраняем предыдущую позицию
         self.last_pos = self.pos
 
         self.animation_timer += dt
@@ -50,11 +48,9 @@ class Firefly:
         return x * self.cell_size, y * self.cell_size
 
     def draw(self, screen):
-        # Очищаем предыдущую позицию
         if self.last_pos:
             lx, ly = self.last_pos
             screen.blit(self.floor_image, (lx, ly))
-        # Рисуем новую позицию
         if self.path and self.index < len(self.path):
             img = self.images[self.frame]
             x, y = self.pos
